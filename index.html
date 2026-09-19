@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicConnect - AI-Powered Citizen Grievance Management System</title>
+  <!-- Link to external stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- =================================================================
+       1. TOP NAVIGATION BAR
+       Provides website branding and primary navigation links.
+       ================================================================= -->
+  <header class="navbar">
+    <div class="nav-container">
+      <!-- Brand / Logo Area -->
+      <a href="#home" class="nav-brand">
+        <span class="brand-icon">🏛️</span>
+        <div class="brand-text">
+          <span class="brand-title">CivicConnect</span>
+          <span class="brand-tag">AI Grievance Portal</span>
+        </div>
+      </a>
+
+      <!-- Mobile Navigation Hamburger Button -->
+      <button class="mobile-toggle" id="mobileMenuBtn" aria-label="Toggle Navigation Menu">
+        ☰
+      </button>
+
+      <!-- Navigation Links -->
+      <nav class="nav-links" id="navLinks">
+        <a href="#home" class="nav-link" id="navHomeBtn">Home</a>
+        <a href="#complaints" class="nav-link active" id="navComplaintsBtn">Complaints</a>
+        <a href="#submit" class="nav-link" id="navSubmitBtn">Submit Complaint</a>
+        <a href="#my-complaints" class="nav-link" id="navMyComplaintsBtn">My Complaints</a>
+        <a href="#admin" class="nav-link nav-link-admin" id="navAdminBtn" style="display: none;">🛡️ Admin Portal</a>
+        <div class="auth-nav-box" id="authNavBox">
+          <button class="nav-link nav-link-login" id="loginBtn">Login</button>
+          <button class="nav-link nav-link-register" id="registerBtn">Register</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- =================================================================
+       2. HERO SECTION
+       Introduces the platform and displays live platform impact metrics.
+       ================================================================= -->
+  <section class="hero-section" id="home">
+    <div class="hero-content">
+      <div class="ai-badge-pill">
+        <span class="ai-sparkle">✨</span> AI-Driven Municipal Issue Tracking
+      </div>
+      <h1 class="hero-title">Smarter, Faster Citizen Grievance Resolution</h1>
+      <p class="hero-subtitle">
+        Report community problems, rally neighborhood support, and track resolution status transparently.
+        Our AI automatically categorizes and prioritizes your civic complaints.
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="heroSubmitBtn">
+          <span>📢</span> Submit New Complaint
+        </button>
+        <a href="#complaints" class="btn btn-secondary" id="heroBrowseBtn">
+          <span>🔍</span> Browse Complaints
+        </a>
+      </div>
+
+      <!-- Quick Platform Statistics Counters -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-number" id="totalComplaintsStat">6</span>
+          <span class="stat-label">Total Complaints</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="resolvedStat">1</span>
+          <span class="stat-label">Resolved</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="inProgressStat">2</span>
+          <span class="stat-label">In Progress</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="citizensSupportedStat">538</span>
+          <span class="stat-label">Citizens Impacted</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       3. MAIN CONTENT: SEARCH, FILTERS & COMPLAINT FEED
+       ================================================================= -->
+  <main class="main-container" id="complaints">
+
+    <!-- Controls Section: Search Bar & Action Button -->
+    <section class="controls-section">
+      <div class="search-wrapper">
+        <span class="search-icon">🔎</span>
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="search-input" 
+          placeholder="Search by title, description, location or category"
+          aria-label="Search complaints"
+        />
+        <button class="clear-search-btn" id="clearSearchBtn" title="Clear search" style="display: none;">✕ Clear Search</button>
+      </div>
+
+      <!-- Quick submission trigger on the controls bar -->
+      <button class="btn btn-primary" id="openModalBtn">
+        <span>+</span> Submit Complaint
+      </button>
+    </section>
+
+    <!-- Category Filter Buttons -->
+    <section class="filter-section">
+      <span class="filter-label">Filter by Category:</span>
+      <div class="filter-buttons" id="filterButtons">
+        <button class="filter-btn active" data-category="All">All</button>
+        <button class="filter-btn" data-category="Water">💧 Water</button>
+        <button class="filter-btn" data-category="Roads">🛣️ Roads</button>
+        <button class="filter-btn" data-category="Electricity">⚡ Electricity</button>
+        <button class="filter-btn" data-category="Waste">🗑️ Waste</button>
+        <button class="filter-btn" data-category="Traffic">🚦 Traffic</button>
+        <button class="filter-btn" data-category="Other">📌 Other</button>
+      </div>
+    </section>
+
+    <!-- Results Status Bar -->
+    <div class="results-header">
+      <div>
+        <h2 class="feed-heading" id="feedHeading">Public Grievances Feed</h2>
+        <p class="feed-subheading" id="feedSubheading" style="display: none; color: var(--text-muted); font-size: 0.88rem; margin-top: 2px;">Complaints submitted by you</p>
+      </div>
+      <span class="results-count" id="resultsCount">Showing 6 complaints</span>
+    </div>
+
+    <!-- Vertically Scrollable Complaint Feed -->
+    <div class="complaints-feed" id="complaintsFeed">
+      <!-- Complaint cards are dynamically rendered here by script.js -->
+    </div>
+
+  </main>
+
+  <!-- =================================================================
+       3.5. ADMIN PORTAL (PHASE 4 & 5 - SECURE MUNICIPAL WORKFLOW)
+       Dedicated administrative dashboard for municipal officials.
+       ================================================================= -->
+  <section class="admin-container" id="adminSection" style="display: none;">
+    <div class="admin-hero-banner">
+      <div class="admin-banner-left">
+        <div class="admin-badge-pill">🛡️ Municipal Authority Control Center</div>
+        <h2 class="admin-heading">CivicConnect Admin Dashboard</h2>
+        <p class="admin-subtext">Manage citizen grievances, monitor AI routing, assign departments, and track resolution lifecycles.</p>
+      </div>
+      <div class="admin-banner-right">
+        <button class="btn btn-outline btn-sm" id="refreshAdminStatsBtn">🔄 Refresh Data</button>
+      </div>
+    </div>
+
+    <!-- Admin KPI Metrics Grid -->
+    <div class="admin-stats-grid">
+      <div class="admin-stat-card">
+        <span class="admin-stat-icon">📊</span>
+        <div class="admin-stat-content">
+          <span class="admin-stat-val" id="adminTotalStat">0</span>
+          <span class="admin-stat-lbl">Total Complaints</span>
+        </div>
+      </div>
+      <div class="admin-stat-card stat-pending">
+        <span class="admin-stat-icon">⚠️</span>
+        <div class="admin-stat-content">
+          <span class="admin-stat-val" id="adminPendingStat">0</span>
+          <span class="admin-stat-lbl">Pending Review</span>
+        </div>
+      </div>
+      <div class="admin-stat-card stat-progress">
+        <span class="admin-stat-icon">⏳</span>
+        <div class="admin-stat-content">
+          <span class="admin-stat-val" id="adminProgressStat">0</span>
+          <span class="admin-stat-lbl">In Progress</span>
+        </div>
+      </div>
+      <div class="admin-stat-card stat-resolved">
+        <span class="admin-stat-icon">✅</span>
+        <div class="admin-stat-content">
+          <span class="admin-stat-val" id="adminResolvedStat">0</span>
+          <span class="admin-stat-lbl">Resolved</span>
+        </div>
+      </div>
+      <div class="admin-stat-card stat-rejected">
+        <span class="admin-stat-icon">⛔</span>
+        <div class="admin-stat-content">
+          <span class="admin-stat-val" id="adminRejectedStat">0</span>
+          <span class="admin-stat-lbl">Rejected</span>
+        </div>
+      </div>
+      <div class="admin-stat-card stat-urgent">
+        <span class="admin-stat-icon">🔴</span>
+        <div class="admin-stat-content">
+          <span class="admin-stat-val" id="adminHighPriorityStat">0</span>
+          <span class="admin-stat-lbl">High Priority</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Breakdown Charts -->
+    <div class="admin-analytics-grid">
+      <div class="analytics-card">
+        <h3 class="analytics-title">📁 Complaints by Category</h3>
+        <div class="analytics-bars-wrap" id="categoryAnalyticsBars">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="analytics-card">
+        <h3 class="analytics-title">🏢 Department Load Distribution</h3>
+        <div class="analytics-bars-wrap" id="departmentAnalyticsBars">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Filter & Search Controls -->
+    <div class="admin-controls-card">
+      <div class="admin-search-row">
+        <div class="search-wrapper admin-search-wrapper">
+          <span class="search-icon">🔎</span>
+          <input 
+            type="text" 
+            id="adminSearchInput" 
+            class="search-input" 
+            placeholder="Filter complaints by ID, title, location, citizen or department..."
+          />
+        </div>
+      </div>
+      <div class="admin-filter-row">
+        <div class="admin-filter-group">
+          <label class="admin-filter-lbl">Status:</label>
+          <select id="adminStatusFilter" class="form-select admin-select-sm">
+            <option value="ALL">All Statuses</option>
+            <option value="PENDING">⚠️ Pending</option>
+            <option value="IN_PROGRESS">⏳ In Progress</option>
+            <option value="RESOLVED">✅ Resolved</option>
+            <option value="REJECTED">⛔ Rejected</option>
+          </select>
+        </div>
+
+        <div class="admin-filter-group">
+          <label class="admin-filter-lbl">Category:</label>
+          <select id="adminCategoryFilter" class="form-select admin-select-sm">
+            <option value="ALL">All Categories</option>
+            <option value="Water">💧 Water</option>
+            <option value="Roads">🛣️ Roads</option>
+            <option value="Electricity">⚡ Electricity</option>
+            <option value="Waste">🗑️ Waste</option>
+            <option value="Traffic">🚦 Traffic</option>
+            <option value="Other">📌 Other</option>
+          </select>
+        </div>
+
+        <div class="admin-filter-group">
+          <label class="admin-filter-lbl">Priority:</label>
+          <select id="adminPriorityFilter" class="form-select admin-select-sm">
+            <option value="ALL">All Priorities</option>
+            <option value="High">🔴 High Priority</option>
+            <option value="Medium">🟡 Medium Priority</option>
+            <option value="Low">🟢 Low Priority</option>
+          </select>
+        </div>
+
+        <button class="btn btn-outline btn-sm" id="resetAdminFiltersBtn">✕ Reset Filters</button>
+      </div>
+    </div>
+
+    <!-- Admin Grievance Management List -->
+    <div class="admin-table-header">
+      <h3 class="admin-table-title">Municipal Grievance Register</h3>
+      <span class="admin-table-count" id="adminTableCount">Showing 0 complaints</span>
+    </div>
+
+    <div class="admin-complaints-list" id="adminComplaintsList">
+      <!-- Injected dynamically by script.js -->
+    </div>
+  </section>
+
+  <!-- =================================================================
+       4. SUBMIT COMPLAINT MODAL (POPUP FORM)
+       Allows citizens to register or edit a civic issue.
+       ================================================================= -->
+  <div class="modal-overlay" id="complaintModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="modalTitle">Submit New Complaint</h3>
+          <p class="modal-subtitle">Voice your local issue. Our AI will help classify it for local municipal authorities.</p>
+        </div>
+        <button class="modal-close-btn" id="closeModalBtn" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <form id="newComplaintForm" class="complaint-form">
+        <!-- Complaint Title -->
+        <div class="form-group">
+          <label for="complaintTitle" class="form-label">Complaint Title *</label>
+          <input 
+            type="text" 
+            id="complaintTitle" 
+            name="title" 
+            class="form-input" 
+            placeholder="e.g., No Water Supply in Anna Nagar" 
+            required 
+          />
+        </div>
+
+        <!-- Location -->
+        <div class="form-group">
+          <label for="complaintLocation" class="form-label">Location / Landmark *</label>
+          <input 
+            type="text" 
+            id="complaintLocation" 
+            name="location" 
+            class="form-input" 
+            placeholder="e.g., Anna Nagar, Main Street" 
+            required 
+          />
+        </div>
+
+        <!-- Category & Urgency -->
+        <div class="form-row">
+          <div class="form-group form-col">
+            <label for="complaintCategory" class="form-label">Category *</label>
+            <select id="complaintCategory" name="category" class="form-select" required>
+              <option value="" disabled selected>Select category...</option>
+              <option value="Water">💧 Water Supply & Drainage</option>
+              <option value="Roads">🛣️ Roads & Footpaths</option>
+              <option value="Electricity">⚡ Electricity & Streetlights</option>
+              <option value="Waste">🗑️ Waste & Sanitation</option>
+              <option value="Traffic">🚦 Traffic & Signals</option>
+              <option value="Other">📌 Other Civic Issues</option>
+            </select>
+          </div>
+
+          <div class="form-group form-col">
+            <label for="complaintUrgency" class="form-label">Priority Level</label>
+            <select id="complaintUrgency" name="urgency" class="form-select">
+              <option value="Low">🟢 Low (General Maintenance)</option>
+              <option value="Medium" selected>🟡 Medium Priority</option>
+              <option value="High">🔴 High Priority (Immediate Hazard)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="complaintDescription" class="form-label">Description *</label>
+          <textarea 
+            id="complaintDescription" 
+            name="description" 
+            rows="4" 
+            class="form-textarea" 
+            placeholder="Describe the issue in detail. Mention how long it has been occurring..." 
+            required
+          ></textarea>
+          
+          <!-- AI Assistant Helper Box: Updates dynamically as the user types -->
+          <div class="ai-assist-box" id="aiAssistBox">
+            <span class="ai-assist-icon">🤖</span>
+            <span class="ai-assist-text" id="aiAssistText">
+              <strong>AI Smart Assist:</strong> Type in your description to auto-suggest category & urgency.
+            </span>
+          </div>
+        </div>
+
+        <!-- Proof / Evidence (Optional) Section -->
+        <div class="form-group proof-upload-section">
+          <label class="form-label">
+            Proof / Evidence <span class="optional-badge">(Optional)</span>
+          </label>
+          <p class="form-sub-label">Add photo or video proof of the problem (stored persistently across reloads).</p>
+
+          <div class="proof-inputs-grid">
+            <!-- 📷 Image Proof Upload Card -->
+            <div class="proof-input-box">
+              <div class="proof-box-header">
+                <span class="proof-box-icon">📷</span>
+                <div class="proof-box-title-wrap">
+                  <strong>Image Proof</strong>
+                  <span class="proof-format-hint">JPG, PNG, WEBP</span>
+                </div>
+              </div>
+              <input 
+                type="file" 
+                id="imageProofInput" 
+                accept="image/jpeg,image/png,image/webp,image/jpg,.jpg,.jpeg,.png,.webp" 
+                style="display: none;" 
+              />
+              <div class="proof-btn-row">
+                <button type="button" class="btn btn-outline btn-sm" id="chooseImageBtn">
+                  📁 Choose Image
+                </button>
+              </div>
+              <div id="imageProofPreview" class="proof-preview-slot" style="display: none;"></div>
+            </div>
+
+            <!-- 🎥 Video Proof Upload Card -->
+            <div class="proof-input-box">
+              <div class="proof-box-header">
+                <span class="proof-box-icon">🎥</span>
+                <div class="proof-box-title-wrap">
+                  <strong>Video Proof</strong>
+                  <span class="proof-format-hint">MP4, WEBM, MOV (Max 50MB)</span>
+                </div>
+              </div>
+              <input 
+                type="file" 
+                id="videoProofInput" 
+                accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" 
+                style="display: none;" 
+              />
+              <div class="proof-btn-row">
+                <button type="button" class="btn btn-outline btn-sm" id="chooseVideoBtn">
+                  📁 Choose Video
+                </button>
+              </div>
+              <div id="videoProofPreview" class="proof-preview-slot" style="display: none;"></div>
+            </div>
+          </div>
+
+          <!-- Validation Error Message Display -->
+          <div class="form-error-msg" id="evidenceError" style="display: none;"></div>
+        </div>
+
+        <!-- Number of people estimated affected -->
+        <div class="form-group">
+          <label for="complaintAffected" class="form-label">Estimated People Affected</label>
+          <input 
+            type="number" 
+            id="complaintAffected" 
+            name="affected" 
+            class="form-input" 
+            value="1" 
+            min="1" 
+            max="10000" 
+          />
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <span>🚀</span> Submit Complaint
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       5. COMMENTS MODAL
+       Allows viewing & adding comments to any complaint card.
+       ================================================================= -->
+  <div class="modal-overlay" id="commentModal" role="dialog" aria-modal="true">
+    <div class="modal-card modal-card-small">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="commentModalTitle">Citizen Discussion</h3>
+          <p class="modal-subtitle" id="commentModalSubtitle">Add your voice or share updates on this issue.</p>
+        </div>
+        <button class="modal-close-btn" id="closeCommentModalBtn" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <div class="comments-list" id="commentsList">
+        <!-- Dynamically populated comments -->
+      </div>
+
+      <form id="commentForm" class="comment-input-row">
+        <input 
+          type="text" 
+          id="newCommentText" 
+          class="form-input" 
+          placeholder="Write a constructive civic comment..." 
+          required 
+        />
+        <button type="submit" class="btn btn-primary btn-sm">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       6. VIEW PROOF MODAL (ENLARGED IMAGE & VIDEO PLAYER)
+       Allows citizens and authorities to view uploaded evidence in high detail.
+       ================================================================= -->
+  <div class="modal-overlay" id="proofModal" role="dialog" aria-modal="true" aria-labelledby="proofModalTitle">
+    <div class="modal-card modal-card-media">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="proofModalTitle">📎 Evidence Proof</h3>
+          <p class="modal-subtitle" id="proofModalSubtitle">Citizen-submitted photo/video documentation</p>
+        </div>
+        <button class="modal-close-btn" id="closeProofModalBtn" aria-label="Close proof viewer">&times;</button>
+      </div>
+
+      <!-- Media Display Container -->
+      <div class="proof-media-container" id="proofModalMediaContainer">
+        <!-- Injected dynamically by script.js (img or video) -->
+      </div>
+
+      <!-- Navigation & Caption for multi-image proofs -->
+      <div class="proof-footer-bar" id="proofFooterBar">
+        <button class="btn btn-outline btn-sm" id="prevProofBtn">◀ Previous</button>
+        <span class="proof-counter" id="proofCounterText">1 of 1</span>
+        <button class="btn btn-outline btn-sm" id="nextProofBtn">Next ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       7. CITIZEN LOGIN MODAL
+       Allows existing citizens to sign in using their registered email.
+       ================================================================= -->
+  <div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+    <div class="modal-card modal-card-auth">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="loginModalTitle">Citizen Login</h3>
+          <p class="modal-subtitle">Access your citizen account to track and support grievances</p>
+        </div>
+        <button class="modal-close-btn" id="closeLoginModalBtn" aria-label="Close login dialog">&times;</button>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <!-- Error Alert Container -->
+        <div class="auth-error-msg" id="loginError" style="display: none;"></div>
+
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="loginEmail" class="form-label">Email Address *</label>
+          <input 
+            type="email" 
+            id="loginEmail" 
+            class="form-input" 
+            placeholder="e.g., citizen@example.com" 
+            required 
+            autocomplete="email"
+          />
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="loginPassword" class="form-label">Password *</label>
+          <input 
+            type="password" 
+            id="loginPassword" 
+            class="form-input" 
+            placeholder="Enter your password" 
+            required 
+            autocomplete="current-password"
+          />
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary btn-auth-submit">
+          <span>🔐</span> Login
+        </button>
+
+        <!-- Switch to Registration Link -->
+        <div class="auth-switch-text">
+          Don't have an account? 
+          <a href="#register" class="auth-switch-link" id="switchToRegisterLink">Register here</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       8. CITIZEN REGISTRATION MODAL
+       Allows new citizens to create a local account stored in localStorage.
+       ================================================================= -->
+  <div class="modal-overlay" id="registerModal" role="dialog" aria-modal="true" aria-labelledby="registerModalTitle">
+    <div class="modal-card modal-card-auth">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="registerModalTitle">Citizen Registration</h3>
+          <p class="modal-subtitle">Join CivicConnect to report civic issues and verify community proof</p>
+        </div>
+        <button class="modal-close-btn" id="closeRegisterModalBtn" aria-label="Close registration dialog">&times;</button>
+      </div>
+
+      <form id="registerForm" class="auth-form">
+        <!-- Error Alert Container -->
+        <div class="auth-error-msg" id="registerError" style="display: none;"></div>
+
+        <!-- Full Name -->
+        <div class="form-group">
+          <label for="registerName" class="form-label">Full Name *</label>
+          <input 
+            type="text" 
+            id="registerName" 
+            class="form-input" 
+            placeholder="e.g., Rajesh Kumar" 
+            required 
+            autocomplete="name"
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="registerEmail" class="form-label">Email Address *</label>
+          <input 
+            type="email" 
+            id="registerEmail" 
+            class="form-input" 
+            placeholder="e.g., rajesh@example.com" 
+            required 
+            autocomplete="email"
+          />
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="registerPassword" class="form-label">Password *</label>
+          <input 
+            type="password" 
+            id="registerPassword" 
+            class="form-input" 
+            placeholder="At least 6 characters" 
+            required 
+            minlength="6"
+            autocomplete="new-password"
+          />
+          <span class="form-hint">Minimum 6 characters</span>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label for="registerConfirmPassword" class="form-label">Confirm Password *</label>
+          <input 
+            type="password" 
+            id="registerConfirmPassword" 
+            class="form-input" 
+            placeholder="Re-enter your password" 
+            required 
+            minlength="6"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary btn-auth-submit">
+          <span>📝</span> Register Account
+        </button>
+
+        <!-- Switch back to Login Link -->
+        <div class="auth-switch-text">
+          Already have an account? 
+          <a href="#login" class="auth-switch-link" id="switchToLoginLink">Login here</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       9. DELETE CONFIRMATION MODAL (PHASE 2)
+       Asks the user to confirm before permanently removing their complaint.
+       ================================================================= -->
+  <div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="modal-card modal-card-confirm">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="deleteModalTitle">🗑️ Delete Complaint</h3>
+          <p class="modal-subtitle">This action cannot be undone.</p>
+        </div>
+        <button class="modal-close-btn" id="closeDeleteModalBtn" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <div class="delete-confirm-body">
+        <p class="delete-confirm-msg">Are you sure you want to permanently delete your complaint?</p>
+        <p class="delete-complaint-preview" id="deleteComplaintPreview"></p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" id="cancelDeleteBtn">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <span>🗑️</span> Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       10. ADMIN UPDATE STATUS MODAL (PHASE 5)
+       ================================================================= -->
+  <div class="modal-overlay" id="adminStatusModal" role="dialog" aria-modal="true" aria-labelledby="adminStatusModalTitle">
+    <div class="modal-card modal-card-small">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="adminStatusModalTitle">⚙️ Update Complaint Status</h3>
+          <p class="modal-subtitle" id="adminStatusModalSubtitle">Complaint #...</p>
+        </div>
+        <button class="modal-close-btn" id="closeAdminStatusModalBtn" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <form id="adminStatusForm" class="auth-form">
+        <div class="form-group">
+          <label for="adminStatusSelect" class="form-label">Resolution Lifecycle Status *</label>
+          <select id="adminStatusSelect" class="form-select" required>
+            <option value="PENDING">⚠️ PENDING (Awaiting Inspection)</option>
+            <option value="IN_PROGRESS">⏳ IN_PROGRESS (Field Crew Dispatched)</option>
+            <option value="RESOLVED">✅ RESOLVED (Work Completed)</option>
+            <option value="REJECTED">⛔ REJECTED (Duplicate / Out of Scope)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="adminStatusNotes" class="form-label">Official Resolution Remark / Note</label>
+          <textarea 
+            id="adminStatusNotes" 
+            class="form-textarea" 
+            rows="3" 
+            placeholder="e.g. Field engineer replaced pipeline seal. Pressure tested normal."
+          ></textarea>
+        </div>
+
+        <div class="modal-footer" style="padding: 0; border: none; margin-top: 0.5rem;">
+          <button type="button" class="btn btn-outline" id="cancelAdminStatusBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <span>💾</span> Save Status
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       11. ADMIN ASSIGN DEPARTMENT MODAL (PHASE 7)
+       ================================================================= -->
+  <div class="modal-overlay" id="adminDeptModal" role="dialog" aria-modal="true" aria-labelledby="adminDeptModalTitle">
+    <div class="modal-card modal-card-small">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="adminDeptModalTitle">🏢 Assign Responsible Department</h3>
+          <p class="modal-subtitle" id="adminDeptModalSubtitle">Complaint #...</p>
+        </div>
+        <button class="modal-close-btn" id="closeAdminDeptModalBtn" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <form id="adminDeptForm" class="auth-form">
+        <div class="form-group">
+          <label for="adminDeptSelect" class="form-label">Municipal Department / Engineering Team *</label>
+          <select id="adminDeptSelect" class="form-select" required>
+            <option value="Water Supply & Drainage Department">💧 Water Supply & Drainage Department</option>
+            <option value="Roads & Infrastructure Department">🛣️ Roads & Infrastructure Department</option>
+            <option value="Electrical & Power Department">⚡ Electrical & Power Department</option>
+            <option value="Waste Management & Sanitation">🗑️ Waste Management & Sanitation</option>
+            <option value="Health & Sanitation Department">🏥 Health & Sanitation Department</option>
+            <option value="Traffic & Transport Department">🚦 Traffic & Transport Department</option>
+            <option value="General Municipal Administration">📌 General Municipal Administration</option>
+          </select>
+        </div>
+
+        <div class="modal-footer" style="padding: 0; border: none; margin-top: 0.5rem;">
+          <button type="button" class="btn btn-outline" id="cancelAdminDeptBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <span>🏢</span> Confirm Assignment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container for user action feedback -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- =================================================================
+       6. FOOTER
+       ================================================================= -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <span class="brand-icon">🏛️</span>
+        <span class="brand-title">CivicConnect</span>
+      </div>
+      <p class="footer-text">
+        AI-Powered Citizen Grievance Management System • Built for transparent municipal governance.
+      </p>
+      <p class="footer-subtext">
+        Designed for academic demonstration & civic innovation. No external backend required.
+      </p>
+    </div>
+  </footer>
+
+  <!-- External JavaScript Logic -->
+  <script src="script.js"></script>
+</body>
+</html>
