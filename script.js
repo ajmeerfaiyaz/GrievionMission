@@ -31,6 +31,19 @@ const getApiBaseUrl = () => {
 const API_BASE = getApiBaseUrl();
 let isBackendConnected = true;
 
+// Helper to normalize and resolve media URLs (local /uploads/**, external, dataURI, blob)
+const resolveMediaUrl = (url) => {
+  if (!url || typeof url !== "string") return null;
+  const trimmed = url.trim();
+  if (!trimmed || trimmed === "null" || trimmed === "undefined") return null;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("data:") || trimmed.startsWith("blob:")) {
+    return trimmed;
+  }
+  const cleanBase = API_BASE.replace(/\/+api\/?$/i, "").replace(/\/+$/, "");
+  const cleanPath = trimmed.startsWith("/") ? trimmed : "/" + trimmed;
+  return cleanBase + cleanPath;
+};
+
 // Storage Keys
 const STORAGE_KEY_USERS = "civicconnect_users";
 const STORAGE_KEY_CURRENT_USER = "civicconnect_currentUser";
@@ -327,6 +340,7 @@ async function fetchComplaintsFromBackend() {
       if (body && body.data) {
         complaintsData = body.data;
         isBackendConnected = true;
+        saveComplaintsToLocalStorage();
         return;
       }
     }
@@ -389,7 +403,11 @@ async function apiCreateComplaint(payload) {
     });
     if (res.ok) {
       const data = await res.json();
-      if (data && data.data) return data.data;
+      if (data && data.data) {
+        complaintsData.unshift(data.data);
+        saveComplaintsToLocalStorage();
+        return data.data;
+      }
     }
   } catch (err) {
     console.warn("Backend save failed, using local save:", err);
@@ -431,7 +449,14 @@ async function apiUpdateComplaint(id, payload) {
     });
     if (res.ok) {
       const data = await res.json();
-      return data.data;
+      if (data && data.data) {
+        const idx = complaintsData.findIndex((c) => c.id === id);
+        if (idx !== -1) {
+          complaintsData[idx] = data.data;
+        }
+        saveComplaintsToLocalStorage();
+        return data.data;
+      }
     }
   } catch (err) {}
 
@@ -570,7 +595,24 @@ function getRegisteredUsersLocal() {
 function saveComplaintsToLocalStorage() {
   try {
     localStorage.setItem(STORAGE_KEY_COMPLAINTS, JSON.stringify(complaintsData));
-  } catch (e) {}
+  } catch (e) {
+    try {
+      // If quota exceeded (e.g. huge local base64/blob proofs), strip large inline media strings to preserve all complaint records
+      const sanitized = complaintsData.map((c) => {
+        const copy = { ...c };
+        if (typeof copy.imageUrl === "string" && copy.imageUrl.length > 200000 && copy.imageUrl.startsWith("data:")) {
+          copy.imageUrl = null;
+        }
+        if (typeof copy.videoUrl === "string" && copy.videoUrl.startsWith("blob:")) {
+          copy.videoUrl = null;
+        }
+        return copy;
+      });
+      localStorage.setItem(STORAGE_KEY_COMPLAINTS, JSON.stringify(sanitized));
+    } catch (inner) {
+      console.warn("LocalStorage save failed:", inner);
+    }
+  }
 }
 
 function loadComplaintsFromLocalStorage() {
@@ -591,17 +633,27 @@ function loadComplaintsFromLocalStorage() {
 // ============================================================================
 
 function getStatusBadgeDetails(status) {
-  const s = (status || "").toUpperCase();
+  const s = (status || "").toUpperCase().trim().replace(/[-\s]+/g, "_");
   switch (s) {
+    case "SUBMITTED":
+      return { className: "submitted", icon: "📩", label: "Submitted" };
+    case "UNDER_REVIEW":
+    case "UNDERREVIEW":
+    case "REVIEW":
+    case "PENDING":
+      return { className: "under-review", icon: "📋", label: "Under Review" };
+    case "IN_PROGRESS":
+    case "INPROGRESS":
+    case "PROGRESS":
+      return { className: "in-progress", icon: "⚙️", label: "In Progress" };
     case "RESOLVED":
       return { className: "resolved", icon: "✓", label: "Resolved" };
-    case "IN_PROGRESS":
-      return { className: "in-progress", icon: "⏳", label: "In Progress" };
     case "REJECTED":
-      return { className: "pending", icon: "⛔", label: "Rejected" };
-    case "PENDING":
+      return { className: "rejected", icon: "✕", label: "Rejected" };
+    case "ESCALATED":
+      return { className: "escalated", icon: "🚨", label: "Escalated" };
     default:
-      return { className: "pending", icon: "⚠️", label: "Pending Review" };
+      return { className: "under-review", icon: "📋", label: status || "Under Review" };
   }
 }
 
@@ -683,33 +735,33 @@ function renderComplaints() {
     const isSupported = supportedSet.has(complaint.id);
     const isOwner = isComplaintOwner(complaint);
 
-    const hasImage = complaint.imageUrl || (complaint.imageProof && complaint.imageProof.data);
-    const hasVideo = complaint.videoUrl || (complaint.videoProof && complaint.videoProof.data);
-    const imageSrc = complaint.imageUrl ? (complaint.imageUrl.startsWith("http") ? complaint.imageUrl : API_BASE.replace("/api", "") + complaint.imageUrl) : complaint.imageProof?.data;
-    const videoSrc = complaint.videoUrl ? (complaint.videoUrl.startsWith("http") ? complaint.videoUrl : API_BASE.replace("/api", "") + complaint.videoUrl) : complaint.videoProof?.data;
+    const resolvedImage = resolveMediaUrl(complaint.imageUrl) || resolveMediaUrl(complaint.imageProof?.data);
+    const resolvedVideo = resolveMediaUrl(complaint.videoUrl) || resolveMediaUrl(complaint.videoProof?.data);
+    const hasImage = Boolean(resolvedImage);
+    const hasVideo = Boolean(resolvedVideo);
 
     let mediaHTML = "";
     if (hasImage && !hasVideo) {
       mediaHTML = `
         <div class="complaint-media-preview trigger-proof-img" data-id="${complaint.id}" title="Click to enlarge proof">
-          <img src="${imageSrc}" alt="Proof" class="complaint-card-image" loading="lazy" />
+          <img src="${resolvedImage}" alt="Proof" class="complaint-card-image" loading="lazy" onerror="this.closest('.complaint-media-preview')?.classList.add('media-hidden'); this.style.display='none';" />
           <span class="preview-overlay-tag">🔍 View Proof</span>
         </div>
       `;
     } else if (hasVideo && !hasImage) {
       mediaHTML = `
         <div class="complaint-media-preview">
-          <video src="${videoSrc}" class="complaint-card-video" controls playsinline></video>
+          <video src="${resolvedVideo}" class="complaint-card-video" controls playsinline preload="metadata" onerror="this.closest('.complaint-media-preview')?.classList.add('media-hidden'); this.style.display='none';"></video>
         </div>
       `;
     } else if (hasImage && hasVideo) {
       mediaHTML = `
         <div class="complaint-media-grid">
           <div class="complaint-media-preview trigger-proof-img" data-id="${complaint.id}">
-            <img src="${imageSrc}" alt="Photo evidence" class="complaint-card-image" />
+            <img src="${resolvedImage}" alt="Photo evidence" class="complaint-card-image" onerror="this.closest('.complaint-media-preview')?.classList.add('media-hidden'); this.style.display='none';" />
           </div>
           <div class="complaint-media-preview">
-            <video src="${videoSrc}" class="complaint-card-video" controls playsinline></video>
+            <video src="${resolvedVideo}" class="complaint-card-video" controls playsinline preload="metadata" onerror="this.closest('.complaint-media-preview')?.classList.add('media-hidden'); this.style.display='none';"></video>
           </div>
         </div>
       `;
@@ -953,7 +1005,7 @@ async function renderAdminDashboard() {
         <button class="btn-admin-action comment-btn" data-id="${c.id}">
           💬 Discussion (${c.comments ? c.comments.length : 0})
         </button>
-        ${(c.imageUrl || c.videoUrl || c.imageProof || c.videoProof) ? `
+        ${(resolveMediaUrl(c.imageUrl) || resolveMediaUrl(c.videoUrl) || resolveMediaUrl(c.imageProof?.data) || resolveMediaUrl(c.videoProof?.data)) ? `
           <button class="btn-admin-action trigger-proof-view" data-id="${c.id}">
             🔍 View Proof
           </button>
@@ -1531,7 +1583,7 @@ function renderImagePreview() {
   if (chooseImageBtn) chooseImageBtn.style.display = "none";
   imageProofPreview.style.display = "block";
 
-  const previewSrc = currentImageProof.data || (currentImageProof.url?.startsWith("http") ? currentImageProof.url : (API_BASE.replace("/api", "") + currentImageProof.url));
+  const previewSrc = currentImageProof.data || resolveMediaUrl(currentImageProof.url);
   const sizeText = currentImageProof.size ? ` (${(currentImageProof.size / (1024 * 1024)).toFixed(1)} MB)` : "";
 
   imageProofPreview.innerHTML = `
@@ -1648,7 +1700,7 @@ function renderVideoPreview() {
   if (chooseVideoBtn) chooseVideoBtn.style.display = "none";
   videoProofPreview.style.display = "block";
 
-  const previewSrc = currentVideoProof.data || (currentVideoProof.url?.startsWith("http") ? currentVideoProof.url : (API_BASE.replace("/api", "") + currentVideoProof.url));
+  const previewSrc = currentVideoProof.data || resolveMediaUrl(currentVideoProof.url);
   const sizeFormatted = currentVideoProof.size ? formatFileSize(currentVideoProof.size) : "";
 
   videoProofPreview.innerHTML = `
@@ -1728,21 +1780,23 @@ function handleEditComplaint(complaintId) {
   if (complaintDescInput) complaintDescInput.value = complaint.description || "";
   if (complaintAffectedInput) complaintAffectedInput.value = complaint.supportCount || 1;
 
-  if (complaint.imageUrl || complaint.imageProof) {
+  const resolvedImg = resolveMediaUrl(complaint.imageUrl) || resolveMediaUrl(complaint.imageProof?.data);
+  if (resolvedImg) {
     currentImageProof = {
       name: "Existing Photo Evidence",
       url: complaint.imageUrl,
-      data: complaint.imageProof?.data || null
+      data: resolvedImg
     };
   } else {
     currentImageProof = null;
   }
 
-  if (complaint.videoUrl || complaint.videoProof) {
+  const resolvedVid = resolveMediaUrl(complaint.videoUrl) || resolveMediaUrl(complaint.videoProof?.data);
+  if (resolvedVid) {
     currentVideoProof = {
       name: "Existing Video Evidence",
       url: complaint.videoUrl,
-      data: complaint.videoProof?.data || null
+      data: resolvedVid
     };
   } else {
     currentVideoProof = null;
@@ -1997,8 +2051,8 @@ function openProofModalForComplaint(complaintId) {
   const complaint = complaintsData.find((c) => c.id === complaintId);
   if (!complaint) return;
 
-  const imageSrc = complaint.imageUrl ? (complaint.imageUrl.startsWith("http") ? complaint.imageUrl : API_BASE.replace("/api", "") + complaint.imageUrl) : complaint.imageProof?.data;
-  const videoSrc = complaint.videoUrl ? (complaint.videoUrl.startsWith("http") ? complaint.videoUrl : API_BASE.replace("/api", "") + complaint.videoUrl) : complaint.videoProof?.data;
+  const imageSrc = resolveMediaUrl(complaint.imageUrl) || resolveMediaUrl(complaint.imageProof?.data);
+  const videoSrc = resolveMediaUrl(complaint.videoUrl) || resolveMediaUrl(complaint.videoProof?.data);
 
   if (!imageSrc && !videoSrc) return;
 
@@ -2009,14 +2063,14 @@ function openProofModalForComplaint(complaintId) {
     if (imageSrc) {
       proofModalMediaContainer.innerHTML += `
         <div style="margin-bottom: ${videoSrc ? '1rem' : '0'}; text-align: center;">
-          <img src="${imageSrc}" alt="Evidence Photo" style="max-height: 60vh; border-radius: 8px; margin: 0 auto;" />
+          <img src="${imageSrc}" alt="Evidence Photo" style="max-height: 60vh; border-radius: 8px; margin: 0 auto;" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'missing-proof-alert\\'>⚠️ Attached photo proof file is unavailable or missing.</div>';" />
         </div>
       `;
     }
     if (videoSrc) {
       proofModalMediaContainer.innerHTML += `
         <div style="text-align: center;">
-          <video src="${videoSrc}" controls autoplay style="max-height: 60vh; width: 100%; border-radius: 8px; background: #000;"></video>
+          <video src="${videoSrc}" controls autoplay style="max-height: 60vh; width: 100%; border-radius: 8px; background: #000;" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'missing-proof-alert\\'>⚠️ Attached video proof file is unavailable or missing.</div>';"></video>
         </div>
       `;
     }
@@ -2375,9 +2429,60 @@ window.addEventListener("hashchange", () => {
 });
 
 // ============================================================================
+// 14.5. THEME MANAGER (Light / Dark / System Mode)
+// ============================================================================
+const THEME_STORAGE_KEY = "grievion_theme";
+
+function getSystemThemePreference() {
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function applyTheme(themeChoice) {
+  const effectiveTheme = themeChoice === "system" ? getSystemThemePreference() : themeChoice;
+  document.documentElement.setAttribute("data-theme", effectiveTheme);
+  document.documentElement.setAttribute("data-theme-setting", themeChoice);
+
+  // Update theme toggle buttons aria states and active classes
+  const themeBtns = document.querySelectorAll(".theme-toggle-btn");
+  themeBtns.forEach((btn) => {
+    const isSelected = btn.getAttribute("data-theme") === themeChoice;
+    btn.classList.toggle("active", isSelected);
+    btn.setAttribute("aria-checked", isSelected ? "true" : "false");
+  });
+}
+
+function initThemeSwitcher() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "system";
+  applyTheme(savedTheme);
+
+  // Attach click listener to theme toggle buttons
+  document.querySelectorAll(".theme-toggle-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const choice = btn.getAttribute("data-theme");
+      if (choice) {
+        localStorage.setItem(THEME_STORAGE_KEY, choice);
+        applyTheme(choice);
+      }
+    });
+  });
+
+  // Listen for OS system theme change events
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      const currentSetting = localStorage.getItem(THEME_STORAGE_KEY) || "system";
+      if (currentSetting === "system") {
+        applyTheme("system");
+      }
+    });
+  }
+}
+
+// ============================================================================
 // 15. INITIALIZATION ON PAGE LOAD
 // ============================================================================
 window.addEventListener("DOMContentLoaded", async () => {
+  initThemeSwitcher();
   updateAuthUI();
 
   const user = getCurrentUser();

@@ -20,7 +20,7 @@ import java.util.UUID;
 @Service
 public class FileStorageService {
 
-    private final Path uploadDir = Paths.get("uploads").toAbsolutePath().normalize();
+    private final Path uploadDir;
 
     private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = new HashSet<>(
             Arrays.asList("jpg", "jpeg", "png", "webp")
@@ -34,10 +34,22 @@ public class FileStorageService {
     private static final long MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 
     public FileStorageService() {
+        Path cwd = Paths.get("").toAbsolutePath().normalize();
+        Path candidate;
+        if (Files.isDirectory(cwd.resolve("backend").resolve("civicconnect"))) {
+            // Running from project root
+            candidate = cwd.resolve("backend").resolve("civicconnect").resolve("uploads");
+        } else if (cwd.endsWith("civicconnect")) {
+            // Running from backend/civicconnect
+            candidate = cwd.resolve("uploads");
+        } else {
+            candidate = cwd.resolve("uploads");
+        }
+        this.uploadDir = candidate.normalize();
         try {
             Files.createDirectories(this.uploadDir);
         } catch (IOException e) {
-            throw new RuntimeException("Could not initialize upload directory!", e);
+            throw new RuntimeException("Could not initialize upload directory: " + this.uploadDir, e);
         }
     }
 

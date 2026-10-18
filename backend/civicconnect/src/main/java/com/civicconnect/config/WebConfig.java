@@ -24,9 +24,29 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String uploadPath = Paths.get("uploads").toAbsolutePath().toUri().toString();
+        java.nio.file.Path cwd = Paths.get("").toAbsolutePath().normalize();
+        java.util.List<String> locations = new java.util.ArrayList<>();
+
+        // 1. Primary backend uploads directory
+        java.nio.file.Path backendUploads = cwd.resolve("backend").resolve("civicconnect").resolve("uploads");
+        if (java.nio.file.Files.isDirectory(backendUploads)) {
+            locations.add(formatResourceLocation(backendUploads));
+        }
+
+        // 2. Working directory uploads
+        locations.add(formatResourceLocation(cwd.resolve("uploads")));
+
+        // 3. Parent directory uploads (when started from backend/civicconnect)
+        locations.add(formatResourceLocation(cwd.resolve("..").resolve("uploads")));
+
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations(uploadPath);
+                .addResourceLocations(locations.toArray(new String[0]))
+                .setCachePeriod(3600);
+    }
+
+    private String formatResourceLocation(java.nio.file.Path path) {
+        String uri = path.toAbsolutePath().normalize().toUri().toString();
+        return uri.endsWith("/") ? uri : uri + "/";
     }
 
     @Override

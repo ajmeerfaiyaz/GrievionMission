@@ -6,14 +6,29 @@
   <title>Grievion Mission - AI-Powered Citizen Grievance Management System</title>
   <!-- Link to external stylesheet -->
   <link rel="stylesheet" href="style.css">
+  <!-- Early theme initialization to prevent flash -->
+  <script>
+    (function () {
+      try {
+        const saved = localStorage.getItem("grievion_theme") || "system";
+        let active = saved;
+        if (saved === "system") {
+          active = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", active);
+        document.documentElement.setAttribute("data-theme-setting", saved);
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
   <!-- =================================================================
-       1. TOP NAVIGATION BAR
-       Provides website branding and primary navigation links.
+       1. TOP NAVIGATION BAR (INDIAN GOVERNMENT PORTAL STYLE)
+       Provides website branding, theme toggle, and primary navigation links.
        ================================================================= -->
   <header class="navbar">
+    <div class="gov-tricolor-bar" aria-hidden="true"></div>
     <div class="nav-container">
       <!-- Brand / Logo Area -->
       <a href="#home" class="nav-brand">
@@ -39,6 +54,24 @@
         <div class="auth-nav-box" id="authNavBox">
           <button class="nav-link nav-link-login" id="loginBtn">Login</button>
           <button class="nav-link nav-link-register" id="registerBtn">Register</button>
+        </div>
+
+        <!-- Light / Dark / System Theme Toggle -->
+        <div class="theme-switch-container" id="themeSwitchContainer">
+          <div class="theme-toggle-group" role="radiogroup" aria-label="Display theme selection">
+            <button type="button" class="theme-toggle-btn" data-theme="light" role="radio" aria-checked="false" title="Light theme">
+              <span class="theme-btn-icon" aria-hidden="true">☀️</span>
+              <span class="theme-btn-label">Light</span>
+            </button>
+            <button type="button" class="theme-toggle-btn" data-theme="dark" role="radio" aria-checked="false" title="Dark theme">
+              <span class="theme-btn-icon" aria-hidden="true">🌙</span>
+              <span class="theme-btn-label">Dark</span>
+            </button>
+            <button type="button" class="theme-toggle-btn active" data-theme="system" role="radio" aria-checked="true" title="Auto (System theme)">
+              <span class="theme-btn-icon" aria-hidden="true">💻</span>
+              <span class="theme-btn-label">Auto</span>
+            </button>
+          </div>
         </div>
       </nav>
     </div>
@@ -397,10 +430,12 @@
           <label class="admin-filter-lbl">Status:</label>
           <select id="adminStatusFilter" class="form-select admin-select-sm">
             <option value="ALL">All Statuses</option>
-            <option value="PENDING">⚠️ Pending</option>
-            <option value="IN_PROGRESS">⏳ In Progress</option>
+            <option value="SUBMITTED">📩 Submitted</option>
+            <option value="PENDING">📋 Under Review / Pending</option>
+            <option value="IN_PROGRESS">⚙️ In Progress</option>
             <option value="RESOLVED">✅ Resolved</option>
             <option value="REJECTED">⛔ Rejected</option>
+            <option value="ESCALATED">🚨 Escalated</option>
           </select>
         </div>
 
@@ -862,10 +897,12 @@
         <div class="form-group">
           <label for="adminStatusSelect" class="form-label">Resolution Lifecycle Status *</label>
           <select id="adminStatusSelect" class="form-select" required>
-            <option value="PENDING">⚠️ PENDING (Awaiting Inspection)</option>
-            <option value="IN_PROGRESS">⏳ IN_PROGRESS (Field Crew Dispatched)</option>
-            <option value="RESOLVED">✅ RESOLVED (Work Completed)</option>
-            <option value="REJECTED">⛔ REJECTED (Duplicate / Out of Scope)</option>
+            <option value="SUBMITTED">📩 SUBMITTED (Citizen Grievance Logged)</option>
+            <option value="PENDING">📋 UNDER REVIEW (Triage & Inspection)</option>
+            <option value="IN_PROGRESS">⚙️ IN_PROGRESS (Field Crew Dispatched)</option>
+            <option value="RESOLVED">✅ RESOLVED (Work Completed & Verified)</option>
+            <option value="REJECTED">⛔ REJECTED (Duplicate / Out of Jurisdiction)</option>
+            <option value="ESCALATED">🚨 ESCALATED (Senior Authority Escalation)</option>
           </select>
         </div>
 
