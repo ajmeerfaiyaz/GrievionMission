@@ -1,11 +1,12 @@
-# CivicConnect – System Architecture Documentation
-**AI-Powered Citizen Grievance Management System**
+# Grievion Mission – System Architecture Documentation
+**AI-Powered Citizen Grievance Management System**  
+> *“Every Grievance. A Step Toward Resolution.”*
 
 ---
 
 ## 1. System Architecture Diagram
 
-Below is the high-level tier architecture of CivicConnect, illustrating the interaction between the presentation layer, REST API controllers, business services, in-house AI intelligence components, JPA data access, relational storage, local media persistence, and cross-cutting components.
+Below is the high-level tier architecture of Grievion Mission, illustrating the interaction between the presentation layer, REST API controllers, business services, in-house AI intelligence components, JPA data access, relational storage, local media persistence, and cross-cutting components.
 
 ![System Architecture](system-architecture.png)
 
@@ -123,7 +124,7 @@ The service layer encapsulates business rules, orchestration, and transactional 
 - **`FileStorageService`:** Enforces file format validation, file size limits (15MB for images, 50MB for videos), UUID-based unique filename generation, and disk I/O persistence via Java NIO.2.
 
 ### Layer 4: AI & Intelligence Component (Explainable In-House Java NLP)
-CivicConnect employs a lightweight, deterministic in-house Java NLP engine that operates without external third-party cloud AI APIs:
+Grievion Mission employs a lightweight, deterministic in-house Java NLP engine that operates without external third-party cloud AI APIs:
 - **Category Classification:** Evaluates token frequencies against categorized knowledge bases (Water, Roads, Electricity, Waste, Traffic, Sanitation).
 - **Priority Prediction:** Scans for high-urgency keywords (e.g., *hazard*, *danger*, *hospital*, *sparking*, *burst*) to assign `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW` priority levels.
 - **Duplicate Grievance Detection:** Computes token-level **Jaccard Similarity** ($J(A, B) = \frac{|A \cap B|}{|A \cup B|}$) between newly submitted complaints and existing open complaints in the database. Submissions with $\ge 45\%$ similarity trigger duplicate alerts for administrators.
@@ -271,4 +272,4 @@ Persistent storage layer managing data integrity and relational constraints:
 ```
 
 ---
-*Documentation verified against the CivicConnect Spring Boot 3.3.4 & MySQL codebase.*
+*Documentation verified against the Grievion Mission Spring Boot 3.3.4 & MySQL codebase.*

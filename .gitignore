@@ -1,24 +1,38 @@
-# Maven
-backend/civicconnect/target/
+# Maven & Build Artifacts
+target/
+**/target/
+*.class
+*.jar
+*.war
 
 # Uploaded media
 uploads/
-backend/civicconnect/uploads/
+**/uploads/
 
-# VS Code
+# VS Code & IDEs
 .vscode/
-
-# IntelliJ
 .idea/
 *.iml
+*.sublime-project
+*.sublime-workspace
 
-# Environment/secrets
+# Vercel
+.vercel/
+
+# Environment, secrets & local properties
 .env
 *.env
+.env.*
+application-local.properties
+application-secret.properties
+
+# Patches & Backups
+*.patch
+*.bak
 
 # Logs
 *.log
 
-# OS
+# OS generated
 Thumbs.db
 .DS_Store

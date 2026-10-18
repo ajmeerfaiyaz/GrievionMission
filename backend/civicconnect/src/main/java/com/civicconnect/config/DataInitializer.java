@@ -60,7 +60,20 @@ public class DataInitializer implements CommandLineRunner {
                     "ADMIN"
             );
             userRepository.save(admin);
-            System.out.println("✅ [CivicConnect] Seeded Default Admin: " + adminEmail + " (Role: ADMIN)");
+            System.out.println("✅ [Grievion Mission] Seeded Default Admin: " + adminEmail + " (Role: ADMIN)");
+        }
+
+        String grievionAdminEmail = "admin@grievionmission.com";
+        Optional<User> existingGrievionAdmin = userRepository.findByEmail(grievionAdminEmail);
+        if (existingGrievionAdmin.isEmpty()) {
+            User admin2 = new User(
+                    "Municipal Administrator",
+                    grievionAdminEmail,
+                    passwordEncoder.encode("admin123"),
+                    "ADMIN"
+            );
+            userRepository.save(admin2);
+            System.out.println("✅ [Grievion Mission] Seeded Default Admin: " + grievionAdminEmail + " (Role: ADMIN)");
         }
     }
 
@@ -78,7 +91,7 @@ public class DataInitializer implements CommandLineRunner {
                     "CITIZEN"
             );
             userRepository.save(citizen);
-            System.out.println("✅ [CivicConnect] Seeded Citizen: " + email + " (Role: CITIZEN)");
+            System.out.println("✅ [Grievion Mission] Seeded Citizen: " + email + " (Role: CITIZEN)");
         }
     }
 

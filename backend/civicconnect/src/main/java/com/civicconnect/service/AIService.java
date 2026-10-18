@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * AI Service for CivicConnect
+ * AI Service for Grievion Mission
  * 
  * Provides explainable NLP capabilities:
  * 1. AI Category Classification (Multi-class Lexical & TF-IDF similarity)

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CivicConnect - AI-Powered Citizen Grievance Management System</title>
+  <title>Grievion Mission - AI-Powered Citizen Grievance Management System</title>
   <!-- Link to external stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
@@ -19,7 +19,7 @@
       <a href="#home" class="nav-brand">
         <span class="brand-icon">🏛️</span>
         <div class="brand-text">
-          <span class="brand-title">CivicConnect</span>
+          <span class="brand-title">Grievion Mission</span>
           <span class="brand-tag">AI Grievance Portal</span>
         </div>
       </a>
@@ -45,6 +45,164 @@
   </header>
 
   <!-- =================================================================
+       1.5. AUTHENTICATION LANDING SECTION (LOGGED-OUT VIEW)
+       Displayed whenever the user is not authenticated.
+       ================================================================= -->
+  <section class="auth-page-section" id="authSection" style="display: none;">
+    <div class="auth-page-container">
+      <div class="auth-card-hero">
+        <div class="auth-brand-badge">🏛️ Grievion Mission Digital Governance</div>
+        <h1 class="auth-hero-title">AI-Powered Citizen Grievance Portal</h1>
+        <p class="auth-hero-desc">
+          <strong>“Every Grievance. A Step Toward Resolution.”</strong><br>
+          Sign in to report civic issues, attach photo and video proof, endorse neighborhood complaints, and track municipal resolution in real time.
+        </p>
+
+        <!-- Quick Demo Credentials Box for easy testing/viva -->
+        <div class="demo-creds-box">
+          <span class="demo-creds-title">⚡ Quick Demo Logins (Click to autofill):</span>
+          <div class="demo-chips">
+            <button type="button" class="demo-chip" id="demoCitizen1Chip" title="Citizen Account 1">
+              👤 <strong>Faiz Ahmed</strong> (Citizen)
+            </button>
+            <button type="button" class="demo-chip" id="demoCitizen2Chip" title="Citizen Account 2">
+              👤 <strong>Arun Kumar</strong> (Citizen)
+            </button>
+            <button type="button" class="demo-chip demo-chip-admin" id="demoAdminChip" title="Municipal Administrator">
+              🛡️ <strong>Admin</strong> (admin@civicconnect.com)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auth Form Card -->
+      <div class="auth-main-card">
+        <!-- Auth Tabs -->
+        <div class="auth-tab-switch">
+          <button type="button" class="auth-tab-btn active" id="authTabLogin">Sign In</button>
+          <button type="button" class="auth-tab-btn" id="authTabRegister">Register Citizen</button>
+        </div>
+
+        <!-- In-Page Login Form -->
+        <div class="auth-panel" id="authLoginPanel">
+          <div class="auth-panel-header">
+            <h2 class="auth-panel-title">Citizen & Admin Login</h2>
+            <p class="auth-panel-sub">Enter your registered email and password to access the portal.</p>
+          </div>
+
+          <form id="inPageLoginForm" class="auth-form">
+            <div class="auth-error-msg" id="inPageLoginError" style="display: none;"></div>
+
+            <div class="form-group">
+              <label for="inPageLoginEmail" class="form-label">Email Address *</label>
+              <input 
+                type="email" 
+                id="inPageLoginEmail" 
+                class="form-input" 
+                placeholder="e.g., citizen@example.com" 
+                required 
+                autocomplete="email"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="inPageLoginPassword" class="form-label">Password *</label>
+              <input 
+                type="password" 
+                id="inPageLoginPassword" 
+                class="form-input" 
+                placeholder="Enter your password" 
+                required 
+                autocomplete="current-password"
+              />
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-auth-submit" id="inPageLoginSubmitBtn">
+              <span>🔐</span> Sign In to Grievion Mission
+            </button>
+
+            <div class="auth-switch-text">
+              Don't have an account? 
+              <a href="#register" class="auth-switch-link" id="inPageSwitchToRegister">Create an account</a>
+            </div>
+          </form>
+        </div>
+
+        <!-- In-Page Registration Form -->
+        <div class="auth-panel" id="authRegisterPanel" style="display: none;">
+          <div class="auth-panel-header">
+            <h2 class="auth-panel-title">Citizen Registration</h2>
+            <p class="auth-panel-sub">Create your citizen profile to report and track municipal complaints.</p>
+          </div>
+
+          <form id="inPageRegisterForm" class="auth-form">
+            <div class="auth-error-msg" id="inPageRegisterError" style="display: none;"></div>
+
+            <div class="form-group">
+              <label for="inPageRegisterName" class="form-label">Full Name *</label>
+              <input 
+                type="text" 
+                id="inPageRegisterName" 
+                class="form-input" 
+                placeholder="e.g., Rajesh Kumar" 
+                required 
+                autocomplete="name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="inPageRegisterEmail" class="form-label">Email Address *</label>
+              <input 
+                type="email" 
+                id="inPageRegisterEmail" 
+                class="form-input" 
+                placeholder="e.g., rajesh@example.com" 
+                required 
+                autocomplete="email"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="inPageRegisterPassword" class="form-label">Password *</label>
+              <input 
+                type="password" 
+                id="inPageRegisterPassword" 
+                class="form-input" 
+                placeholder="Minimum 6 characters" 
+                required 
+                minlength="6" 
+                autocomplete="new-password"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="inPageRegisterConfirmPassword" class="form-label">Confirm Password *</label>
+              <input 
+                type="password" 
+                id="inPageRegisterConfirmPassword" 
+                class="form-input" 
+                placeholder="Re-enter password" 
+                required 
+                minlength="6" 
+                autocomplete="new-password"
+              />
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-auth-submit" id="inPageRegisterSubmitBtn">
+              <span>📝</span> Register Account
+            </button>
+
+            <div class="auth-switch-text">
+              Already have an account? 
+              <a href="#login" class="auth-switch-link" id="inPageSwitchToLogin">Sign in here</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
        2. HERO SECTION
        Introduces the platform and displays live platform impact metrics.
        ================================================================= -->
@@ -53,10 +211,9 @@
       <div class="ai-badge-pill">
         <span class="ai-sparkle">✨</span> AI-Driven Municipal Issue Tracking
       </div>
-      <h1 class="hero-title">Smarter, Faster Citizen Grievance Resolution</h1>
+      <h1 class="hero-title">Every Grievance. A Step Toward Resolution.</h1>
       <p class="hero-subtitle">
-        Report community problems, rally neighborhood support, and track resolution status transparently.
-        Our AI automatically categorizes and prioritizes your civic complaints.
+        Grievion Mission empowers citizens to report community problems, rally neighborhood support, and track resolution status transparently with intelligent AI categorization and priority scoring.
       </p>
       <div class="hero-actions">
         <button class="btn btn-primary" id="heroSubmitBtn">
@@ -152,7 +309,7 @@
     <div class="admin-hero-banner">
       <div class="admin-banner-left">
         <div class="admin-badge-pill">🛡️ Municipal Authority Control Center</div>
-        <h2 class="admin-heading">CivicConnect Admin Dashboard</h2>
+        <h2 class="admin-heading">Grievion Mission Admin Dashboard</h2>
         <p class="admin-subtext">Manage citizen grievances, monitor AI routing, assign departments, and track resolution lifecycles.</p>
       </div>
       <div class="admin-banner-right">
@@ -582,7 +739,7 @@
       <div class="modal-header">
         <div>
           <h3 class="modal-title" id="registerModalTitle">Citizen Registration</h3>
-          <p class="modal-subtitle">Join CivicConnect to report civic issues and verify community proof</p>
+          <p class="modal-subtitle">Join Grievion Mission to report civic issues and verify community proof</p>
         </div>
         <button class="modal-close-btn" id="closeRegisterModalBtn" aria-label="Close registration dialog">&times;</button>
       </div>
@@ -779,13 +936,13 @@
     <div class="footer-container">
       <div class="footer-brand">
         <span class="brand-icon">🏛️</span>
-        <span class="brand-title">CivicConnect</span>
+        <span class="brand-title">Grievion Mission</span>
       </div>
       <p class="footer-text">
-        AI-Powered Citizen Grievance Management System • Built for transparent municipal governance.
+        AI-Powered Citizen Grievance Management System • <em>“Every Grievance. A Step Toward Resolution.”</em>
       </p>
       <p class="footer-subtext">
-        Designed for academic demonstration & civic innovation. No external backend required.
+        Designed for transparent digital governance, rapid grievance triage & civic innovation.
       </p>
     </div>
   </footer>

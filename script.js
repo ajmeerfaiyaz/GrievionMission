@@ -1,10 +1,11 @@
 /**
  * ============================================================================
- * CivicConnect - AI-Powered Citizen Grievance Management System
+ * Grievion Mission - AI-Powered Citizen Grievance Management System
  * script.js (Full Frontend + Backend REST Integration)
+ * Tagline: “Every Grievance. A Step Toward Resolution.”
  * 
  * Features:
- * 1. Full Spring Boot REST Integration (http://localhost:8080/api)
+ * 1. Full Spring Boot REST Integration (configurable API endpoint)
  * 2. Role-Based Access Control (CITIZEN vs ADMIN)
  * 3. Municipal Admin Command Center & Analytics Dashboard
  * 4. AI Real-Time Analysis & Smart Department Routing
@@ -14,7 +15,20 @@
  * ============================================================================
  */
 
-const API_BASE = "http://localhost:8080/api";
+// Configurable API base endpoint:
+// Supports production deployments (e.g. Vercel) via window.GRIEVION_API_URL or localStorage 'grievion_custom_api_url'
+// Defaults to local Spring Boot backend http://localhost:8080/api
+const DEFAULT_API_BASE = "http://localhost:8080/api";
+const getApiBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    if (window.GRIEVION_API_URL) return window.GRIEVION_API_URL.replace(/\/+$/, "");
+    if (window.__GRIEVION_API_URL__) return window.__GRIEVION_API_URL__.replace(/\/+$/, "");
+    const stored = localStorage.getItem("grievion_custom_api_url");
+    if (stored && stored.trim()) return stored.trim().replace(/\/+$/, "");
+  }
+  return DEFAULT_API_BASE;
+};
+const API_BASE = getApiBaseUrl();
 let isBackendConnected = true;
 
 // Storage Keys
@@ -62,6 +76,34 @@ const openModalBtn = document.getElementById("openModalBtn");
 const authNavBox = document.getElementById("authNavBox");
 const loginBtn = document.getElementById("loginBtn");
 const registerBtn = document.getElementById("registerBtn");
+
+// Hero Section
+const heroSection = document.getElementById("home");
+
+// Dedicated In-Page Auth Section Elements
+const authSection = document.getElementById("authSection");
+const authTabLogin = document.getElementById("authTabLogin");
+const authTabRegister = document.getElementById("authTabRegister");
+const authLoginPanel = document.getElementById("authLoginPanel");
+const authRegisterPanel = document.getElementById("authRegisterPanel");
+
+const inPageLoginForm = document.getElementById("inPageLoginForm");
+const inPageLoginEmail = document.getElementById("inPageLoginEmail");
+const inPageLoginPassword = document.getElementById("inPageLoginPassword");
+const inPageLoginError = document.getElementById("inPageLoginError");
+const inPageSwitchToRegister = document.getElementById("inPageSwitchToRegister");
+
+const inPageRegisterForm = document.getElementById("inPageRegisterForm");
+const inPageRegisterName = document.getElementById("inPageRegisterName");
+const inPageRegisterEmail = document.getElementById("inPageRegisterEmail");
+const inPageRegisterPassword = document.getElementById("inPageRegisterPassword");
+const inPageRegisterConfirmPassword = document.getElementById("inPageRegisterConfirmPassword");
+const inPageRegisterError = document.getElementById("inPageRegisterError");
+const inPageSwitchToLogin = document.getElementById("inPageSwitchToLogin");
+
+const demoCitizen1Chip = document.getElementById("demoCitizen1Chip");
+const demoCitizen2Chip = document.getElementById("demoCitizen2Chip");
+const demoAdminChip = document.getElementById("demoAdminChip");
 
 // Main Citizen Views
 const complaintsMain = document.getElementById("complaints");
@@ -200,6 +242,7 @@ function setCurrentUser(user) {
       localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(user));
     } else {
       localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
+      sessionStorage.removeItem(STORAGE_KEY_CURRENT_USER);
     }
   } catch (err) {}
 }
@@ -212,15 +255,24 @@ function isComplaintOwner(complaint) {
 }
 
 function updateAuthUI() {
-  if (!authNavBox) return;
   const user = getCurrentUser();
+
+  // Control protected nav links visibility
+  const protectedLinks = [navHomeBtn, navComplaintsBtn, navSubmitBtn, navMyComplaintsBtn];
+  protectedLinks.forEach((btn) => {
+    if (btn) {
+      btn.style.display = user ? "inline-block" : "none";
+    }
+  });
+
+  if (navAdminBtn) {
+    navAdminBtn.style.display = user && user.role === "ADMIN" ? "inline-block" : "none";
+  }
+
+  if (!authNavBox) return;
 
   if (user) {
     const isAdmin = user.role === "ADMIN";
-    if (navAdminBtn) {
-      navAdminBtn.style.display = isAdmin ? "inline-block" : "none";
-    }
-
     authNavBox.innerHTML = `
       <div class="user-profile-badge" title="Logged in as ${escapeHTML(user.email)} (${user.role})">
         <span class="user-avatar-small">${isAdmin ? "🛡️" : "👤"}</span>
@@ -230,20 +282,20 @@ function updateAuthUI() {
     `;
     document.getElementById("logoutBtn")?.addEventListener("click", handleLogout);
   } else {
-    if (navAdminBtn) navAdminBtn.style.display = "none";
     authNavBox.innerHTML = `
-      <button class="nav-link nav-link-login" id="loginBtn">Login</button>
-      <button class="nav-link nav-link-register" id="registerBtn">Register</button>
+      <button class="nav-link nav-link-login ${currentView === 'login' ? 'active' : ''}" id="loginBtn">Login</button>
+      <button class="nav-link nav-link-register ${currentView === 'register' ? 'active' : ''}" id="registerBtn">Register</button>
     `;
-    document.getElementById("loginBtn")?.addEventListener("click", () => openLoginModal());
-    document.getElementById("registerBtn")?.addEventListener("click", () => openRegisterModal());
+    document.getElementById("loginBtn")?.addEventListener("click", (e) => { e.preventDefault(); switchToView("login"); });
+    document.getElementById("registerBtn")?.addEventListener("click", (e) => { e.preventDefault(); switchToView("register"); });
   }
 }
 
 function handleLogout() {
   setCurrentUser(null);
+  sessionStorage.clear();
   updateAuthUI();
-  switchToView("feed");
+  switchToView("login");
   showToast("Logged out successfully.", "info");
 }
 
@@ -316,7 +368,7 @@ async function apiLoginUser(email, password) {
     return await res.json();
   } catch (err) {
     // Local fallback
-    if (email.toLowerCase() === "admin@civicconnect.com" && password === "admin123") {
+    if ((email.toLowerCase() === "admin@civicconnect.com" || email.toLowerCase() === "admin@grievionmission.com") && password === "admin123") {
       return { success: true, message: "Login successful!", data: { id: 999, name: "Municipal Administrator", email, role: "ADMIN" } };
     }
     const users = getRegisteredUsersLocal();
@@ -1112,64 +1164,144 @@ if (adminDeptForm) {
 }
 
 // ============================================================================
-// 7. VIEW SWITCHING (FEED / MY-COMPLAINTS / ADMIN)
+// 7. VIEW SWITCHING (LOGIN / REGISTER / HOME / FEED / MY-COMPLAINTS / ADMIN)
 // ============================================================================
 
 function switchToView(viewName) {
+  const user = getCurrentUser();
+
+  // If user is not authenticated, only allow login or register views
+  if (!user) {
+    if (viewName !== "login" && viewName !== "register") {
+      viewName = "login";
+    }
+  }
+
   currentView = viewName;
 
-  if (viewName === "admin") {
-    const user = getCurrentUser();
-    if (!user || user.role !== "ADMIN") {
-      showToast("Access Denied: Admin authorization required.", "error");
-      switchToView("feed");
+  // 1. LOGIN VIEW
+  if (viewName === "login") {
+    if (user) {
+      switchToView(user.role === "ADMIN" ? "admin" : "home");
       return;
     }
 
+    if (authSection) authSection.style.display = "flex";
+    if (authLoginPanel) authLoginPanel.style.display = "block";
+    if (authRegisterPanel) authRegisterPanel.style.display = "none";
+    if (authTabLogin) authTabLogin.classList.add("active");
+    if (authTabRegister) authTabRegister.classList.remove("active");
+
+    if (heroSection) heroSection.style.display = "none";
+    if (complaintsMain) complaintsMain.style.display = "none";
+    if (adminSection) adminSection.style.display = "none";
+
+    deactivateAllNavLinks();
+    updateAuthUI();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  // 2. REGISTER VIEW
+  if (viewName === "register") {
+    if (user) {
+      switchToView(user.role === "ADMIN" ? "admin" : "home");
+      return;
+    }
+
+    if (authSection) authSection.style.display = "flex";
+    if (authLoginPanel) authLoginPanel.style.display = "none";
+    if (authRegisterPanel) authRegisterPanel.style.display = "block";
+    if (authTabRegister) authTabRegister.classList.add("active");
+    if (authTabLogin) authTabLogin.classList.remove("active");
+
+    if (heroSection) heroSection.style.display = "none";
+    if (complaintsMain) complaintsMain.style.display = "none";
+    if (adminSection) adminSection.style.display = "none";
+
+    deactivateAllNavLinks();
+    updateAuthUI();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  // For all protected views below, user is guaranteed to be authenticated
+  if (authSection) authSection.style.display = "none";
+
+  // 3. ADMIN VIEW
+  if (viewName === "admin") {
+    if (user.role !== "ADMIN") {
+      showToast("Access Denied: Admin authorization required.", "error");
+      switchToView("home");
+      return;
+    }
+
+    if (heroSection) heroSection.style.display = "none";
     if (complaintsMain) complaintsMain.style.display = "none";
     if (adminSection) adminSection.style.display = "block";
+
+    deactivateAllNavLinks();
     if (navAdminBtn) navAdminBtn.classList.add("active");
-    if (navComplaintsBtn) navComplaintsBtn.classList.remove("active");
-    if (navMyComplaintsBtn) navMyComplaintsBtn.classList.remove("active");
-    if (navHomeBtn) navHomeBtn.classList.remove("active");
 
     renderAdminDashboard();
     adminSection?.scrollIntoView({ behavior: "smooth" });
-  } else if (viewName === "my-complaints") {
-    const user = getCurrentUser();
-    if (!user) {
-      showToast("Please login to view your complaints.", "info");
-      openLoginModal();
-      return;
-    }
+    return;
+  }
 
+  // 4. MY COMPLAINTS VIEW
+  if (viewName === "my-complaints") {
+    if (heroSection) heroSection.style.display = "none";
     if (complaintsMain) complaintsMain.style.display = "block";
     if (adminSection) adminSection.style.display = "none";
+
+    deactivateAllNavLinks();
     if (navMyComplaintsBtn) navMyComplaintsBtn.classList.add("active");
-    if (navComplaintsBtn) navComplaintsBtn.classList.remove("active");
-    if (navAdminBtn) navAdminBtn.classList.remove("active");
-    if (navHomeBtn) navHomeBtn.classList.remove("active");
     if (feedHeading) feedHeading.textContent = "My Complaints";
     if (feedSubheading) feedSubheading.style.display = "block";
 
     renderComplaints();
     complaintsMain?.scrollIntoView({ behavior: "smooth" });
-  } else {
-    // Public complaints feed
+    return;
+  }
+
+  // 5. COMPLAINTS FEED VIEW
+  if (viewName === "feed") {
+    if (heroSection) heroSection.style.display = "block";
     if (complaintsMain) complaintsMain.style.display = "block";
     if (adminSection) adminSection.style.display = "none";
+
+    deactivateAllNavLinks();
     if (navComplaintsBtn) navComplaintsBtn.classList.add("active");
-    if (navMyComplaintsBtn) navMyComplaintsBtn.classList.remove("active");
-    if (navAdminBtn) navAdminBtn.classList.remove("active");
-    if (navHomeBtn) navHomeBtn.classList.remove("active");
     if (feedHeading) feedHeading.textContent = "Public Grievances Feed";
     if (feedSubheading) feedSubheading.style.display = "none";
 
     renderComplaints();
     complaintsMain?.scrollIntoView({ behavior: "smooth" });
+    return;
   }
+
+  // 6. HOME VIEW (DEFAULT AUTHENTICATED VIEW)
+  if (heroSection) heroSection.style.display = "block";
+  if (complaintsMain) complaintsMain.style.display = "block";
+  if (adminSection) adminSection.style.display = "none";
+
+  deactivateAllNavLinks();
+  if (navHomeBtn) navHomeBtn.classList.add("active");
+  if (feedHeading) feedHeading.textContent = "Public Grievances Feed";
+  if (feedSubheading) feedSubheading.style.display = "none";
+
+  renderComplaints();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+function deactivateAllNavLinks() {
+  navHomeBtn?.classList.remove("active");
+  navComplaintsBtn?.classList.remove("active");
+  navMyComplaintsBtn?.classList.remove("active");
+  navAdminBtn?.classList.remove("active");
+}
+
+if (navHomeBtn) navHomeBtn.addEventListener("click", (e) => { e.preventDefault(); switchToView("home"); });
 if (navComplaintsBtn) navComplaintsBtn.addEventListener("click", (e) => { e.preventDefault(); switchToView("feed"); });
 if (navMyComplaintsBtn) navMyComplaintsBtn.addEventListener("click", (e) => { e.preventDefault(); switchToView("my-complaints"); });
 if (navAdminBtn) navAdminBtn.addEventListener("click", (e) => { e.preventDefault(); switchToView("admin"); });
@@ -1905,129 +2037,200 @@ if (closeProofModalBtn) closeProofModalBtn.addEventListener("click", closeProofM
 if (proofModal) proofModal.addEventListener("click", (e) => { if (e.target === proofModal) closeProofModal(); });
 
 // ============================================================================
-// 13. AUTHENTICATION (LOGIN & REGISTRATION) MODALS
+// 13. AUTHENTICATION (IN-PAGE & MODAL LOGIN / REGISTRATION)
 // ============================================================================
 
 function openLoginModal(prefillEmail = "") {
-  if (loginErrorMsg) { loginErrorMsg.textContent = ""; loginErrorMsg.style.display = "none"; }
-  if (loginForm) loginForm.reset();
-  if (prefillEmail && loginEmailInput) loginEmailInput.value = prefillEmail;
-  closeRegisterModal();
-  loginModal?.classList.add("active");
-  document.body.style.overflow = "hidden";
-  setTimeout(() => (prefillEmail && loginPasswordInput ? loginPasswordInput.focus() : loginEmailInput?.focus()), 100);
+  switchToView("login");
+  if (prefillEmail && inPageLoginEmail) {
+    inPageLoginEmail.value = prefillEmail;
+    inPageLoginPassword?.focus();
+  }
 }
 
 function closeLoginModal() {
   loginModal?.classList.remove("active");
   document.body.style.overflow = "";
-  if (loginErrorMsg) { loginErrorMsg.textContent = ""; loginErrorMsg.style.display = "none"; }
 }
 
 function openRegisterModal() {
-  if (registerErrorMsg) { registerErrorMsg.textContent = ""; registerErrorMsg.style.display = "none"; }
-  if (registerForm) registerForm.reset();
-  closeLoginModal();
-  registerModal?.classList.add("active");
-  document.body.style.overflow = "hidden";
-  setTimeout(() => registerNameInput?.focus(), 100);
+  switchToView("register");
 }
 
 function closeRegisterModal() {
   registerModal?.classList.remove("active");
   document.body.style.overflow = "";
-  if (registerErrorMsg) { registerErrorMsg.textContent = ""; registerErrorMsg.style.display = "none"; }
 }
 
-if (loginBtn) loginBtn.addEventListener("click", () => openLoginModal());
-if (registerBtn) registerBtn.addEventListener("click", () => openRegisterModal());
-if (closeLoginModalBtn) closeLoginModalBtn.addEventListener("click", closeLoginModal);
-if (closeRegisterModalBtn) closeRegisterModalBtn.addEventListener("click", closeRegisterModal);
-if (loginModal) loginModal.addEventListener("click", (e) => { if (e.target === loginModal) closeLoginModal(); });
-if (registerModal) registerModal.addEventListener("click", (e) => { if (e.target === registerModal) closeRegisterModal(); });
-if (switchToRegisterLink) switchToRegisterLink.addEventListener("click", (e) => { e.preventDefault(); openRegisterModal(); });
-if (switchToLoginLink) switchToLoginLink.addEventListener("click", (e) => { e.preventDefault(); openLoginModal(); });
+// In-Page Auth Tab Switching
+if (authTabLogin) authTabLogin.addEventListener("click", () => switchToView("login"));
+if (authTabRegister) authTabRegister.addEventListener("click", () => switchToView("register"));
+if (inPageSwitchToRegister) inPageSwitchToRegister.addEventListener("click", (e) => { e.preventDefault(); switchToView("register"); });
+if (inPageSwitchToLogin) inPageSwitchToLogin.addEventListener("click", (e) => { e.preventDefault(); switchToView("login"); });
 
-// Registration Form Submit
-if (registerForm) {
-  registerForm.addEventListener("submit", async (e) => {
+// Demo Credentials Autofill Chips
+if (demoCitizen1Chip) {
+  demoCitizen1Chip.addEventListener("click", () => {
+    switchToView("login");
+    if (inPageLoginEmail) inPageLoginEmail.value = "faiz@test.com";
+    if (inPageLoginPassword) inPageLoginPassword.value = "123456";
+    if (inPageLoginError) inPageLoginError.style.display = "none";
+    inPageLoginPassword?.focus();
+  });
+}
+if (demoCitizen2Chip) {
+  demoCitizen2Chip.addEventListener("click", () => {
+    switchToView("login");
+    if (inPageLoginEmail) inPageLoginEmail.value = "arun@test.com";
+    if (inPageLoginPassword) inPageLoginPassword.value = "123456";
+    if (inPageLoginError) inPageLoginError.style.display = "none";
+    inPageLoginPassword?.focus();
+  });
+}
+if (demoAdminChip) {
+  demoAdminChip.addEventListener("click", () => {
+    switchToView("login");
+    if (inPageLoginEmail) inPageLoginEmail.value = "admin@civicconnect.com";
+    if (inPageLoginPassword) inPageLoginPassword.value = "admin123";
+    if (inPageLoginError) inPageLoginError.style.display = "none";
+    inPageLoginPassword?.focus();
+  });
+}
+
+// In-Page Login Form Submit
+if (inPageLoginForm) {
+  inPageLoginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (registerErrorMsg) { registerErrorMsg.textContent = ""; registerErrorMsg.style.display = "none"; }
+    if (inPageLoginError) { inPageLoginError.textContent = ""; inPageLoginError.style.display = "none"; }
 
-    const name = registerNameInput.value.trim();
-    const email = registerEmailInput.value.trim().toLowerCase();
-    const password = registerPasswordInput.value;
-    const confirmPassword = registerConfirmPasswordInput.value;
+    const email = inPageLoginEmail ? inPageLoginEmail.value.trim().toLowerCase() : "";
+    const password = inPageLoginPassword ? inPageLoginPassword.value : "";
+
+    if (!email || !password) {
+      showInPageLoginError("Please enter both email and password.");
+      return;
+    }
+
+    const submitBtn = inPageLoginForm.querySelector("button[type='submit']");
+    const originalBtnHTML = submitBtn ? submitBtn.innerHTML : "";
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>⏳</span> Authenticating...`;
+    }
+
+    try {
+      const result = await apiLoginUser(email, password);
+      if (result.success && result.data) {
+        const user = result.data;
+        setCurrentUser(user);
+        updateAuthUI();
+
+        await fetchComplaintsFromBackend();
+
+        if (user.role === "ADMIN") {
+          showToast("Welcome to Municipal Admin Command Center!", "success");
+          switchToView("admin");
+        } else {
+          showToast(`Welcome back, ${user.name}!`, "success");
+          switchToView("home");
+        }
+      } else {
+        showInPageLoginError(result.message || "Invalid email or password.");
+      }
+    } catch (err) {
+      showInPageLoginError("Authentication service error. Please try again.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHTML;
+      }
+    }
+  });
+}
+
+function showInPageLoginError(msg) {
+  if (inPageLoginError) {
+    inPageLoginError.textContent = msg;
+    inPageLoginError.style.display = "block";
+  }
+}
+
+// In-Page Registration Form Submit
+if (inPageRegisterForm) {
+  inPageRegisterForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (inPageRegisterError) { inPageRegisterError.textContent = ""; inPageRegisterError.style.display = "none"; }
+
+    const name = inPageRegisterName ? inPageRegisterName.value.trim() : "";
+    const email = inPageRegisterEmail ? inPageRegisterEmail.value.trim().toLowerCase() : "";
+    const password = inPageRegisterPassword ? inPageRegisterPassword.value : "";
+    const confirmPassword = inPageRegisterConfirmPassword ? inPageRegisterConfirmPassword.value : "";
 
     if (!name || !email || !password || !confirmPassword) {
-      showRegisterError("Please fill in all required fields.");
+      showInPageRegisterError("Please fill in all required fields.");
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showRegisterError("Please enter a valid email address.");
+      showInPageRegisterError("Please enter a valid email address.");
       return;
     }
     if (password.length < 6) {
-      showRegisterError("Password must be at least 6 characters.");
+      showInPageRegisterError("Password must be at least 6 characters.");
       return;
     }
     if (password !== confirmPassword) {
-      showRegisterError("Passwords do not match.");
+      showInPageRegisterError("Passwords do not match.");
       return;
     }
 
-    const result = await apiRegisterUser(name, email, password);
-    if (result.success) {
-      closeRegisterModal();
-      showToast("Registration successful! Please login.", "success");
-      openLoginModal(email);
-    } else {
-      showRegisterError(result.message || "Registration failed.");
-    }
-  });
-}
-
-function showRegisterError(msg) {
-  if (registerErrorMsg) { registerErrorMsg.textContent = msg; registerErrorMsg.style.display = "block"; }
-}
-
-// Login Form Submit (Role-Based Access Routing)
-if (loginForm) {
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (loginErrorMsg) { loginErrorMsg.textContent = ""; loginErrorMsg.style.display = "none"; }
-
-    const email = loginEmailInput.value.trim().toLowerCase();
-    const password = loginPasswordInput.value;
-
-    if (!email || !password) {
-      showLoginError("Please enter email and password.");
-      return;
+    const submitBtn = inPageRegisterForm.querySelector("button[type='submit']");
+    const originalBtnHTML = submitBtn ? submitBtn.innerHTML : "";
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>⏳</span> Creating account...`;
     }
 
-    const result = await apiLoginUser(email, password);
-    if (result.success && result.data) {
-      const user = result.data;
-      setCurrentUser(user);
-      closeLoginModal();
-      updateAuthUI();
-
-      if (user.role === "ADMIN") {
-        showToast("Welcome to Municipal Admin Command Center!", "success");
-        switchToView("admin");
+    try {
+      const result = await apiRegisterUser(name, email, password);
+      if (result.success) {
+        if (result.data) {
+          setCurrentUser(result.data);
+          updateAuthUI();
+          await fetchComplaintsFromBackend();
+          showToast(`Account created! Welcome, ${name}!`, "success");
+          switchToView("home");
+        } else {
+          showToast("Registration successful! Please sign in.", "success");
+          switchToView("login");
+          if (inPageLoginEmail) inPageLoginEmail.value = email;
+          inPageLoginPassword?.focus();
+        }
       } else {
-        showToast(`Welcome back, ${user.name}!`, "success");
-        switchToView("feed");
+        showInPageRegisterError(result.message || "Registration failed.");
       }
-    } else {
-      showLoginError(result.message || "Invalid email or password.");
+    } catch (err) {
+      showInPageRegisterError("Registration failed. Please try again.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHTML;
+      }
     }
   });
 }
 
-function showLoginError(msg) {
-  if (loginErrorMsg) { loginErrorMsg.textContent = msg; loginErrorMsg.style.display = "block"; }
+function showInPageRegisterError(msg) {
+  if (inPageRegisterError) {
+    inPageRegisterError.textContent = msg;
+    inPageRegisterError.style.display = "block";
+  }
 }
+
+// Modal Fallback Handlers
+if (loginBtn) loginBtn.addEventListener("click", () => switchToView("login"));
+if (registerBtn) registerBtn.addEventListener("click", () => switchToView("register"));
+if (closeLoginModalBtn) closeLoginModalBtn.addEventListener("click", closeLoginModal);
+if (closeRegisterModalBtn) closeRegisterModalBtn.addEventListener("click", closeRegisterModal);
 
 // ============================================================================
 // 14. EVENT DELEGATION FOR FEED & ADMIN ACTIONS
@@ -2139,18 +2342,50 @@ document.querySelectorAll(".nav-link").forEach((link) => {
   link.addEventListener("click", () => navLinks?.classList.remove("open"));
 });
 
+// Hash Routing Guard
+function handleHashRouting() {
+  const hash = window.location.hash.toLowerCase();
+  const user = getCurrentUser();
+
+  if (!user) {
+    if (hash === "#register") {
+      switchToView("register");
+    } else {
+      switchToView("login");
+    }
+    return;
+  }
+
+  if (hash === "#admin") {
+    switchToView("admin");
+  } else if (hash === "#my-complaints") {
+    switchToView("my-complaints");
+  } else if (hash === "#complaints") {
+    switchToView("feed");
+  } else if (hash === "#submit") {
+    switchToView("home");
+    openComplaintModal();
+  } else {
+    switchToView("home");
+  }
+}
+
+window.addEventListener("hashchange", () => {
+  handleHashRouting();
+});
+
 // ============================================================================
 // 15. INITIALIZATION ON PAGE LOAD
 // ============================================================================
 window.addEventListener("DOMContentLoaded", async () => {
   updateAuthUI();
 
-  // If no user is logged in, default-seed logged-in user as Faiz (Citizen ID: 1)
-  if (!getCurrentUser()) {
-    setCurrentUser({ id: 1, name: "Faiz Ahmed", email: "faiz@test.com", role: "CITIZEN" });
-    updateAuthUI();
+  const user = getCurrentUser();
+  if (user) {
+    await fetchComplaintsFromBackend();
+    handleHashRouting();
+  } else {
+    // If not authenticated, always show the login view
+    switchToView("login");
   }
-
-  await fetchComplaintsFromBackend();
-  renderComplaints();
 });

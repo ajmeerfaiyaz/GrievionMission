@@ -1,6 +1,7 @@
-# CivicConnect - Backend (Spring Boot)
+# Grievion Mission - Backend (Spring Boot)
 
-AI-Powered Citizen Grievance Management System backend application.
+AI-Powered Citizen Grievance Management System backend application.  
+**“Every Grievance. A Step Toward Resolution.”**
 
 ## Tech Stack
 - **Language**: Java 21
@@ -65,5 +66,5 @@ curl http://localhost:8080/api/test
 
 **Expected Response**:
 ```
-CivicConnect Backend is running successfully!
+Grievion Mission Backend is running successfully!
 ```

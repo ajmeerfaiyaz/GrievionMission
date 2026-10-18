@@ -15,10 +15,10 @@ public class TestController {
      * Test verification endpoint
      * 
      * GET /api/test
-     * Returns: "CivicConnect Backend is running successfully!"
+     * Returns: "Grievion Mission Backend is running successfully!"
      */
     @GetMapping("/test")
     public String testEndpoint() {
-        return "CivicConnect Backend is running successfully!";
+        return "Grievion Mission Backend is running successfully!";
     }
 }

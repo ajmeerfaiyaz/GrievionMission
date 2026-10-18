@@ -1,5 +1,6 @@
-# CivicConnect – Database Entity-Relationship (ER) Documentation
-**AI-Powered Citizen Grievance Management System**
+# Grievion Mission – Database Entity-Relationship (ER) Documentation
+**AI-Powered Citizen Grievance Management System**  
+> *“Every Grievance. A Step Toward Resolution.”*
 
 ---
 
@@ -231,4 +232,4 @@ Inspect the actual source code (`Complaint.java`, `Support.java`, `Comment.java`
 4. **Performance & Predictability:** Direct index-based lookups (`findByComplaintId`, `findByCreatedBy`) allow precise SQL query optimization and low memory footprint.
 
 ---
-*Documentation verified against CivicConnect JPA entities in `com.civicconnect.entity`.*
+*Documentation verified for Grievion Mission against JPA entities in `com.civicconnect.entity`.*

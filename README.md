@@ -1,18 +1,19 @@
-# CivicConnect – AI-Powered Citizen Grievance Management System
+# Grievion Mission – AI-Powered Citizen Grievance Management System
 
-> **A modern, transparent, and intelligent municipal grievance management platform bridging the gap between citizens and local urban local bodies (ULBs).**
+> **“Every Grievance. A Step Toward Resolution.”**  
+> *A modern, transparent, and intelligent municipal grievance management platform bridging the gap between citizens and local urban local bodies (ULBs).*
 
 ---
 
 ## 1. Project Title
-**CivicConnect – AI-Powered Citizen Grievance Management System**
+**Grievion Mission – AI-Powered Citizen Grievance Management System**
 
 ---
 
 ## 2. Project Overview
-CivicConnect is a full-stack, enterprise-grade digital governance application designed to modernize and streamline public grievance redressal. Traditional grievance management mechanisms—such as physical petition desks, manual ledger registers, and fragmented paper trails—suffer from systemic delays, lack of transparency, absence of real-time progress tracking, and poor administrative accountability.
+Grievion Mission is a full-stack, enterprise-grade digital governance application designed to modernize and streamline public grievance redressal. Traditional grievance management mechanisms—such as physical petition desks, manual ledger registers, and fragmented paper trails—suffer from systemic delays, lack of transparency, absence of real-time progress tracking, and poor administrative accountability.
 
-CivicConnect solves these operational bottlenecks by providing a centralized, responsive web platform paired with a robust RESTful backend and embedded AI-assisted heuristics. Citizens can register, file detailed complaints with multimedia evidence (photos and videos), track status updates in real time, engage in community upvoting/support, and contribute public comments. Municipal administrators and grievance officers are equipped with a dedicated **Admin Command Center** featuring live analytics, AI-assisted priority scoring, duplicate grievance detection, automated department routing, and one-click status transitions.
+Grievion Mission solves these operational bottlenecks by providing a centralized, responsive web platform paired with a robust RESTful backend and embedded AI-assisted heuristics. Citizens can register, file detailed complaints with multimedia evidence (photos and videos), track status updates in real time, engage in community upvoting/support, and contribute public comments. Municipal administrators and grievance officers are equipped with a dedicated **Admin Command Center** featuring live analytics, AI-assisted priority scoring, duplicate grievance detection, automated department routing, and one-click status transitions.
 
 ---
 
@@ -27,7 +28,7 @@ Municipal corporations and civic administrative bodies encounter several systemi
 ---
 
 ## 4. Proposed Solution
-CivicConnect addresses these challenges through an integrated, data-driven architecture:
+Grievion Mission addresses these challenges through an integrated, data-driven architecture:
 1. **Centralized Digital Portal:** A single-page, responsive citizen web interface for seamless grievance registration, real-time tracking, and community discussion.
 2. **AI-Assisted Triage Engine:** Embedded heuristic NLP rules analyze grievance titles, descriptions, and locations to predict department categories, compute urgency scores (CRITICAL / HIGH / MEDIUM / LOW), and generate concise extractive summaries.
 3. **Automated Duplicate Detection:** Token-based Jaccard similarity algorithms scan the database for matching category, location, and keywords, alerting administrators to recurring issues.
@@ -69,7 +70,7 @@ CivicConnect addresses these challenges through an integrated, data-driven archi
 ---
 
 ## 7. AI & Intelligent Triage Engine
-CivicConnect implements an explainable, in-house **Natural Language Processing (NLP) & Heuristic Intelligence Service** (`AIService.java`) that operates without external cloud dependencies:
+Grievion Mission implements an explainable, in-house **Natural Language Processing (NLP) & Heuristic Intelligence Service** (`AIService.java`) that operates without external cloud dependencies:
 
 1. **Intelligent Department Categorization:**
    - Tokenizes and cleans grievance text using custom stop-word filtering.
@@ -345,7 +346,7 @@ USE civicconnect;
    mvn spring-boot:run
    ```
 4. The backend service will initialize on `http://localhost:8080`.
-5. Verify health check by visiting `http://localhost:8080/api/test` in your browser (should return `Backend is working`).
+5. Verify health check by visiting `http://localhost:8080/api/test` in your browser (should return `Grievion Mission Backend is running successfully!`).
 
 ### Step 2: Launch the Frontend Web Portal
 - **Option A (VS Code Live Server - Recommended):**
@@ -359,11 +360,11 @@ USE civicconnect;
 
 ## 17. Default Demo Accounts
 
-CivicConnect includes pre-configured demo credentials for rapid evaluation:
+Grievion Mission includes pre-configured demo credentials for rapid evaluation:
 
 | Role | Email Address | Password | Permissions |
 |---|---|---|---|
-| **Municipal Administrator** | `admin@civicconnect.com` | `admin123` | Full administrative control, status updates, triage oversight, global deletion |
+| **Municipal Administrator** | `admin@civicconnect.com` / `admin@grievionmission.com` | `admin123` | Full administrative control, status updates, triage oversight, global deletion |
 | **Citizen (Demo 1)** | `faiz@test.com` | `123456` | File grievances, upload media proof, edit/delete own posts, upvote, comment |
 | **Citizen (Demo 2)** | `arun@test.com` | `123456` | File grievances, upvote community posts, post discussion comments |
 
@@ -423,7 +424,7 @@ mvn clean test-compile
 ---
 
 ## 21. Conclusion
-CivicConnect bridges the divide between citizens and urban local bodies by replacing opaque manual grievance registers with an intelligent, transparent, and participatory digital platform. By pairing robust Spring Boot REST services with explainable AI triage heuristics and high-capacity multimedia handling, the system empowers citizens to hold administration accountable while providing municipal officers with the data-driven tools needed for rapid, prioritized civic redressal.
+Grievion Mission bridges the divide between citizens and urban local bodies by replacing opaque manual grievance registers with an intelligent, transparent, and participatory digital platform. Guided by the mission—*“Every Grievance. A Step Toward Resolution.”*—the system pairs robust Spring Boot REST services with explainable AI triage heuristics and high-capacity multimedia handling, empowering citizens to hold administration accountable while providing municipal officers with the data-driven tools needed for rapid, prioritized civic redressal.
 
 ---
 *Developed for Academic & Municipal Governance Redressal Evaluation.*
